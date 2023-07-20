@@ -1,15 +1,7 @@
-top3 = [0, 0, 0]
+from re import findall
 
 with open("input1", "r") as f:
-    total = 0
-    for line in f.readlines():
-        if line.strip():
-            total += int(line.strip())
-        else:
-            if total > min(top3):
-                top3.remove(min(top3))
-                top3.append(total)
-            total = 0
+    elf_totals = sorted([sum([int(x) for x in findall("[0-9]+", elf)]) for elf in f.read().split("\n\n")], reverse=True)
 
-print("Part 1:", max(top3))
-print("Part 2:", sum(top3))
+print("Part 1:", elf_totals[0])
+print("Part 2:", sum(elf_totals[:3]))
