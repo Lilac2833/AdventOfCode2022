@@ -2,7 +2,6 @@ class Register:
     def __init__(self):
         self.value = 1
         self.cycles = 0
-        self.important_cycles = [20, 60, 100, 140, 180, 220]
         self.part1_answer = 0
         self.part2_string = ''
 
@@ -13,7 +12,7 @@ class Register:
 
     def noop(self):
         self.cycles += 1
-        if self.cycles in self.important_cycles:
+        if self.cycles in [20, 60, 100, 140, 180, 220]:
             self.part1_answer += self.strength()
         self.draw_pixel()
 
@@ -21,24 +20,21 @@ class Register:
         return self.cycles * self.value
 
     def draw_pixel(self):
-        if abs(self.value - (self.cycles-1)%40) <= 1:
+        if abs(self.value - (self.cycles-1) % 40) <= 1:
             self.part2_string += "#"
         else:
             self.part2_string += "."
 
 
-def get_the_answer():
-    with open("input10", "r") as f:
-        r = Register()
-        for line in f:
-            if line[0:4] == "noop":
-                r.noop()
-            else:
-                r.addx(int(line.split()[1]))
-    return r.part1_answer, r.part2_string
+with open("input10", "r") as f:
+    lines = map(str.split, f.readlines())
 
+r = Register()
+for line in lines:
+    if line[0] == "noop":
+        r.noop()
+    else:
+        r.addx(int(line[1]))
 
-a1, a2 = get_the_answer()
-print(a1)
-for i in range(6):
-    print(a2[40*i:40*(i+1)])
+print("Part 1:", r.part1_answer)
+print("Part 2:\n", "".join([r.part2_string[40*i:40*(i+1)]+"\n" for i in range(6)]))

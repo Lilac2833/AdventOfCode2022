@@ -1,17 +1,18 @@
 from operator import add, mul
 from math import prod
+from re import findall
 
 
 class Monkey:
-    def __init__(self, items, bin_op, arg2, modulus, if_true, if_false):
-        self.items = items
+    def __init__(self, starting_items, other_data):
+        self.items = starting_items
         self.n_inspected = 0
-        self.modulus = modulus
-        if arg2 == "old":
-            self.inspect = lambda x: {"+": add, "*": mul}[bin_op](x, x)
+        self.modulus = other_data[2]
+        if other_data[1] == "old":
+            self.inspect = lambda x: {"+": add, "*": mul}[other_data[0]](x, x)
         else:
-            self.inspect = lambda x: {"+": add, "*": mul}[bin_op](x, int(arg2))
-        self.throw = lambda x: if_true*(x % modulus == 0) + if_false*(x % modulus != 0)
+            self.inspect = lambda x: {"+": add, "*": mul}[other_data[0]](x, other_data[1])
+        self.throw = lambda x: other_data[4] if x % self.modulus else other_data[3]
 
 
 class Monkeys:
@@ -21,8 +22,7 @@ class Monkeys:
 
     def act(self, m, part):  # m = index of current monkey
         while self.monkeys[m].items:
-            i = self.monkeys[m].items.pop(0)
-            new_worry = self.monkeys[m].inspect(i)
+            new_worry = self.monkeys[m].inspect(self.monkeys[m].items.pop(0))
             if part == 1:
                 new_worry //= 3
             thrown_to = self.monkeys[m].throw(new_worry)
@@ -33,21 +33,14 @@ class Monkeys:
 
 def parse_input():
     with open("input11", "r") as f:
-        lines = f.readlines()
+        lines = [line for line in f.readlines() if line != "\n"]
     monkeys = []
-    for i in range(8):
-        item_line = lines[7*i + 1].replace(',', '').split()
-        items = [int(x) for x in item_line if x.isnumeric()]
-
-        operation_line = lines[7*i + 2].split()
-        bin_op = operation_line[-2]
-        arg2 = operation_line[-1]
-
-        modulus = int(lines[7*i + 3].split()[-1])
-        if_true = int(lines[7*i + 4].split()[-1])
-        if_false = int(lines[7*i + 5].split()[-1])
-
-        monkeys.append(Monkey(items, bin_op, arg2, modulus, if_true, if_false))
+    while lines:
+        block = lines[1:6]
+        del lines[:6]  # Not exactly the optimal way to go through blocks, but no big deal for such a small input
+        starting_items = [int(x) for x in findall("[0-9]+", block[0])]
+        other_data = [int(x) if x.isnumeric() else x for x in findall("[0-9]+|[\+\-\*\/]|old(?=\n)", "".join(block[1:]))]
+        monkeys.append(Monkey(starting_items, other_data))
     return Monkeys(monkeys)
 
 
@@ -61,5 +54,5 @@ def answer(n_rounds, part):
     return tmp[-1]*tmp[-2]
 
 
-print(answer(20, 1))  # Part 1
-print(answer(10000, 2))  # Part 2
+print("Part 1:", answer(20, 1))
+print("Part 2:", answer(10000, 2))
