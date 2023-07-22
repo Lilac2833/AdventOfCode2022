@@ -1,49 +1,42 @@
-# NOTE: This code is really bad. I wanted to try using a package to handle Dijkstra, but it complicated part 2
+# Not my best work :) But wanted to try using the dijkstar package
 from dijkstar import Graph, find_path, NoPathError
 
-lines = []
 with open("input12", "r") as f:
-    for line in f.readlines():
-        lines.append([c for c in line[:-1]])  # ignore \n
+    lines = ["{" + line.rstrip() + "{" for line in f.readlines()]
+lines.insert(0, "{" * len(lines[0]))   # ord("z") == 122 and ord("{") == 123
+lines.append("{" * len(lines[0]))
+
 graph = Graph()
-for i in range(len(lines)):
-    lines[i].insert(0, "{")  # ord("z") == 122 and ord("{") == 123
-    lines[i].append("{")
-lines.insert(0, ["{"] * len(lines[0]))
-lines.append(["{"] * len(lines[0]))
 
-nrows = len(lines)
-ncols = len(lines[0])
-all_a_pts = []
 
-for r in range(1, nrows - 1):
-    for c in range(1, ncols - 1):
-        if lines[r][c] == "E":
-            height = ord("z")
-            end = (r, c)
-        elif lines[r][c] == "S":
-            start = (r, c)
-            height = ord("a")
-            all_a_pts.append((r, c))
-        else:
-            height = ord(lines[r][c])
-            if lines[r][c] == "a":
-                all_a_pts.append((r, c))
+def height(character):
+    return ord({"S": "a", "E": "z"}[character]) if character.isupper() else ord(character)
 
-        nbhrs = [(r + p[0], c + p[1]) for p in [(0, 1), (0, -1), (1, 0), (-1, 0)]]
-        for nbhr in nbhrs:
-            if ord(lines[nbhr[0]][nbhr[1]]) <= height + 1:
-                graph.add_edge((r, c), nbhr, 1)
+
+list_of_a_points = set({})
+for row_idx, line in enumerate(lines):
+    for col_idx, char in enumerate(line):
+        if char == "{":
+            continue
+        if char == "E":
+            end = (row_idx, col_idx)
+        elif char == "S":
+            start = (row_idx, col_idx)
+        if char == "a" or char == "S":
+            list_of_a_points.add((row_idx, col_idx))
+
+        for horiz_step, vert_step in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            if height(lines[row_idx + horiz_step][col_idx + vert_step]) <= height(char) + 1:
+                graph.add_edge((row_idx, col_idx), (row_idx + horiz_step, col_idx + vert_step), 1)
+
 path = find_path(graph, start, end)
 print("Part 1:", path.total_cost)
 
-# Time complexity of this is not good
 best_length = path.total_cost
-for p in all_a_pts:
+for p in list_of_a_points:
     try:
-        find_path(graph, p, end)
+        best_length = min(best_length, find_path(graph, p, end).total_cost)
     except NoPathError:
         pass
-    else:
-        best_length = min(best_length, find_path(graph, p, end).total_cost)
+
 print("Part 2:", best_length)
