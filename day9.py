@@ -6,7 +6,7 @@ class Point:
     def move(self, direction):
         self.x += (direction == "R") - (direction == "L")
         self.y += (direction == "U") - (direction == "D")
-        return self
+        return
 
     def pos(self):
         return self.x, self.y
@@ -25,22 +25,21 @@ def update(parent, child):
 
 def the_answer(n):
     # n = number of knots = (2 for part 1, 10 for part 2)
-    knots = [Point() for i in range(n)]  # Head is knots[0], tail is knots[-1]
-    visited = [(0, 0)]
+    knots = [Point() for _ in range(n)]  # Head is knots[0], tail is knots[n]
+    visited = {(0, 0)}
     with open("input9", "r") as f:
-        for line in f:
-            line = line.split()
+        for line in map(str.split, f.readlines()):
             d = line[0]
             amt = int(line[1])
 
             for _ in range(amt):
-                knots[0] = knots[0].move(d)
+                knots[0].move(d)
                 for i in range(1, n):
                     knots[i] = update(knots[i-1], knots[i])
-                visited.append(knots[-1].pos())
+                visited.add(knots[-1].pos())
 
-    return len(set(visited))
+    return len(visited)
 
 
-print(the_answer(2))  # Part 1
-print(the_answer(10))  # Part 2
+print("Part 1:", the_answer(2))
+print("Part 2:", the_answer(10))
